@@ -10,8 +10,9 @@ public class Scripture
     {
         _reference = reference;
         _words = new List<Word>();
-        string[] splitWords = text.Split(' ');
-        foreach (var w in splitWords)
+
+        string[] split = text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var w in split)
         {
             _words.Add(new Word(w));
         }
@@ -20,17 +21,24 @@ public class Scripture
     public void HideRandomWords(int numberToHide)
     {
         Random rnd = new Random();
-        for (int i = 0; i < numberToHide; i++)
+        List<Word> visibleWords = _words.FindAll(w => !w.IsHidden());
+
+        for (int i = 0; i < numberToHide && visibleWords.Count > 0; i++)
         {
-            int index = rnd.Next(_words.Count);
-            _words[index].Hide();
+            int index = rnd.Next(visibleWords.Count);
+            visibleWords[index].Hide();
+            visibleWords.RemoveAt(index);
         }
     }
 
     public string GetDisplayText()
     {
-        string displayText = string.Join(" ", _words.ConvertAll(w => w.GetDisplayText()));
-        return $"{_reference.GetDisplayText()}\n{displayText}";
+        string result = _reference.GetDisplayText() + "\n";
+        foreach (var w in _words)
+        {
+            result += w.GetDisplayText() + " ";
+        }
+        return result.Trim();
     }
 
     public bool IsCompletelyHidden()
